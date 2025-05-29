@@ -1,0 +1,16 @@
+{
+    "cortex-debug.armToolchainPath": "/opt/arm-none-eabi/bin/", 
+    "cortex-debug.openocdPath": "/usr/bin/openocd",
+    "cortex-debug.gdbPath": "/opt/arm-none-eabi/bin/arm-none-eabi-gdb",
+    "makefile.configureOnOpen": true,
+    "files.associations": {
+        "atomic": "cpp",
+        "lwrb.h": "c",
+        "stddef.h": "c",
+        "stdint.h": "c",
+        "string.h": "c",
+        "main.h": "c",
+        "cstdint": "c"
+    },
+    "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}"
+}

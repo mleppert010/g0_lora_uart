@@ -1,0 +1,57 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "DUSE_FULL_LL_DRIVER",
+                "DHSE_VALUE=8000000",
+                "DHSE_STARTUP_TIMEOUT=100",
+                "DLSE_STARTUP_TIMEOUT=5000",
+                "DLSE_VALUE=32768",
+                "DEXTERNAL_CLOCK_VALUE=12288000",
+                "DHSI_VALUE=16000000",
+                "DLSI_VALUE=32000",
+                "DVDD_VALUE=3300",
+                "DPREFETCH_ENABLE=1",
+                "DINSTRUCTION_CACHE_ENABLE=1",
+                "DDATA_CACHE_ENABLE=1",
+                "DSTM32G031xx"
+            ],
+            "compilerPath": "/opt/arm-none-eabi/bin/arm-none-eabi-gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++98",
+            "intelliSenseMode": "gcc-arm",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "DUSE_FULL_LL_DRIVER",
+                "DHSE_VALUE=8000000",
+                "DHSE_STARTUP_TIMEOUT=100",
+                "DLSE_STARTUP_TIMEOUT=5000",
+                "DLSE_VALUE=32768",
+                "DEXTERNAL_CLOCK_VALUE=12288000",
+                "DHSI_VALUE=16000000",
+                "DLSI_VALUE=32000",
+                "DVDD_VALUE=3300",
+                "DPREFETCH_ENABLE=1",
+                "DINSTRUCTION_CACHE_ENABLE=1",
+                "DDATA_CACHE_ENABLE=1",
+                "DSTM32G031xx"
+            ],
+            "compilerPath": "C:/Dev Tools/ARM-GCC/14.2 rel1/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++98",
+            "intelliSenseMode": "gcc-arm",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,38 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (DAPlink)",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "preLaunchTask": "make build",
+            "servertype": "openocd",
+            "device": "STM32G031F6",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/svd/STM32G031.svd",
+            "runToEntryPoint": "main", // else it starts at reset handler
+            "configFiles": [
+                "/usr/share/openocd/scripts/interface/cmsis-dap.cfg",
+                "/usr/share/openocd/scripts/target/stm32g0x.cfg"
+            ]
+        },
+        {
+            "name": "Attach (DAPlink)",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "device": "STM32G031F6",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/svd/STM32G031.svd",
+            "runToEntryPoint": "main", // else it starts at reset handler
+            "configFiles": [
+                "/usr/share/openocd/scripts/interface/cmsis-dap.cfg",
+                "/usr/share/openocd/scripts/target/stm32g0x.cfg"
+            ]
+        }
+    ]
+}
