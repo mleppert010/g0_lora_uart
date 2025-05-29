@@ -46,7 +46,7 @@
                 "DDATA_CACHE_ENABLE=1",
                 "DSTM32G031xx"
             ],
-            "compilerPath": "C:/Dev Tools/ARM-GCC/14.2 rel1/bin/arm-none-eabi-gcc.exe",
+            "compilerPath": "C:/Dev Tools/arm-none-eabi/bin/arm-none-eabi-gcc.exe",
             "cStandard": "c17",
             "cppStandard": "c++98",
             "intelliSenseMode": "gcc-arm",

@@ -1,8 +1,4 @@
 {
-    "cortex-debug.armToolchainPath": "/opt/arm-none-eabi/bin/", 
-    "cortex-debug.openocdPath": "/usr/bin/openocd",
-    "cortex-debug.gdbPath": "/opt/arm-none-eabi/bin/arm-none-eabi-gdb",
-    "makefile.configureOnOpen": true,
     "files.associations": {
         "atomic": "cpp",
         "lwrb.h": "c",
