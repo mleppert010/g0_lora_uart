@@ -182,16 +182,16 @@ int main(void) {
     /* Initialize all configured peripherals */
     /* USER CODE BEGIN 2 */
 
-    /* Initialize lpuart1 tx ringbuff */
+    /* Initialize usart1 tx ringbuff */
     lwrb_init(&usart1_buff.tx_rb, usart1_buff.tx_rb_data, sizeof(usart1_buff.tx_rb_data));
 
-    /* Initialize lpuart1 rx processing ringbuffer */
+    /* Initialize usart1 rx processing ringbuffer */
     lwrb_init(&usart1_buff.rx_process_rb, usart1_buff.rx_process_rb_data, sizeof(usart1_buff.rx_process_rb_data));
 
-    /* Initialize usart1 tx ringbuff */
+    /* Initialize usart2 tx ringbuff */
     lwrb_init(&usart2_buff.tx_rb, usart2_buff.tx_rb_data, sizeof(usart2_buff.tx_rb_data));
 
-    /* Initialize usart1 rx processing ringbuffer */
+    /* Initialize usart2 rx processing ringbuffer */
     lwrb_init(&usart2_buff.rx_process_rb, usart2_buff.rx_process_rb_data, sizeof(usart2_buff.rx_process_rb_data));
 
     /* Initialize all configured peripherals */
@@ -285,44 +285,42 @@ void usart1_init(void) {
     GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
     LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    /* USART1 RX DMA init */
-    LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_1, LL_DMAMUX_REQ_USART1_RX);
-    LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_1, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
-    LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PRIORITY_LOW);
-    LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MODE_CIRCULAR);
-    LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PERIPH_NOINCREMENT);
-    LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MEMORY_INCREMENT);
-    LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PDATAALIGN_BYTE);
-    LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MDATAALIGN_BYTE);
-    LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_1, LL_USART_DMA_GetRegAddr(USART1, LL_USART_DMA_REG_DATA_RECEIVE));
-    LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t)usart1_buff.rx_dma_buff);
-    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1, ARRAY_LEN(usart1_buff.rx_dma_buff));
-
-    /* USART1 TX DMA init */
-    LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_2, LL_DMAMUX_REQ_USART1_TX);
-    LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_2, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+    /* USART RX DMA init */
+    LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_2, LL_DMAMUX_REQ_USART1_RX);
+    LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_2, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
     LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PRIORITY_LOW);
-    LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MODE_NORMAL);
+    LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MODE_CIRCULAR);
     LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PERIPH_NOINCREMENT);
     LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MEMORY_INCREMENT);
     LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PDATAALIGN_BYTE);
     LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MDATAALIGN_BYTE);
-    LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_2, LL_USART_DMA_GetRegAddr(USART1, LL_USART_DMA_REG_DATA_TRANSMIT));
+    LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_2, LL_USART_DMA_GetRegAddr(USART1, LL_USART_DMA_REG_DATA_RECEIVE));
+    LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_2, (uint32_t)usart1_buff.rx_dma_buff);
+    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_2, ARRAY_LEN(usart1_buff.rx_dma_buff));
+
+    /* USART TX DMA init */
+    LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_3, LL_DMAMUX_REQ_USART1_TX);
+    LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_3, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+    LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_3, LL_DMA_PRIORITY_LOW);
+    LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_3, LL_DMA_MODE_NORMAL);
+    LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_3, LL_DMA_PERIPH_NOINCREMENT);
+    LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_3, LL_DMA_MEMORY_INCREMENT);
+    LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_3, LL_DMA_PDATAALIGN_BYTE);
+    LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_3, LL_DMA_MDATAALIGN_BYTE);
+    LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_3, LL_USART_DMA_GetRegAddr(USART1, LL_USART_DMA_REG_DATA_TRANSMIT));
 
     /* Enable HT & TC interrupts for RX */
-    LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_1);
-    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
-
-    /* Enable HT & TC interrupts for TX */
+    LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_2);
     LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_2);
 
+    /* Enable HT & TC interrupts for TX */
+    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_3);
+
     /* DMA interrupt init for RX & TX */
-    NVIC_SetPriority(DMA1_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
-    NVIC_EnableIRQ(DMA1_Channel1_IRQn);
     NVIC_SetPriority(DMA1_Channel2_3_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
     NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
-    /* Initialize USART1 */
+    /* Initialize USART */
     USART_InitStruct.PrescalerValue = LL_USART_PRESCALER_DIV1;
     USART_InitStruct.BaudRate = 115200;
     USART_InitStruct.DataWidth = LL_USART_DATAWIDTH_8B;
@@ -332,30 +330,221 @@ void usart1_init(void) {
     USART_InitStruct.HardwareFlowControl = LL_USART_HWCONTROL_NONE;
     USART_InitStruct.OverSampling = LL_USART_OVERSAMPLING_16;
     LL_USART_Init(USART1, &USART_InitStruct);
-    LL_USART_SetTXFIFOThreshold(USART1, LL_USART_FIFOTHRESHOLD_1_8);
-    LL_USART_SetRXFIFOThreshold(USART1, LL_USART_FIFOTHRESHOLD_1_8);
-    LL_USART_DisableFIFO(USART1);
+    if(IS_UART_FIFO_INSTANCE(USART1)) {
+        LL_USART_SetTXFIFOThreshold(USART1, LL_USART_FIFOTHRESHOLD_1_8);
+        LL_USART_SetRXFIFOThreshold(USART1, LL_USART_FIFOTHRESHOLD_1_8);
+        LL_USART_DisableFIFO(USART1);
+    }
     LL_USART_EnableDMAReq_RX(USART1);
     LL_USART_EnableDMAReq_TX(USART1);
     LL_USART_EnableIT_IDLE(USART1);
 
-    /* UDART1 interrupt */
+    /* UDART interrupt */
     NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
     NVIC_EnableIRQ(USART1_IRQn);
 
-    /* Associated DMA channel struct for USART1 */
+    /* Associated DMA channel struct for USART */
     usart1_tx_dma.controller = DMA1;
-    usart1_tx_dma.channel = LL_DMA_CHANNEL_2;
+    usart1_tx_dma.channel = LL_DMA_CHANNEL_3;
     usart1_tx_dma.clear_flag_TC = &LL_DMA_ClearFlag_TC4;
     usart1_tx_dma.clear_flag_GI = &LL_DMA_ClearFlag_GI4;
     usart1_tx_dma.clear_flag_HT = &LL_DMA_ClearFlag_HT4;
     usart1_tx_dma.clear_flag_TE = &LL_DMA_ClearFlag_TE4;
 
-    /* Enable USART and DMA */
-    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
+    /* Enable USART and RX DMA */
+    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_2);
     LL_USART_Enable(USART1);
     while (!LL_USART_IsActiveFlag_TEACK(USART1) || !LL_USART_IsActiveFlag_REACK(USART1)) {
     }
+}
+
+/**
+ * \brief           USART2 Initialization Function
+ */
+void usart2_init(void) {
+    LL_USART_InitTypeDef USART_InitStruct = {0};
+    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    /* Peripheral clock enable */
+    LL_APB2_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
+    LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
+
+    /*
+     * USART1 GPIO Configuration
+     *
+     * PA2   ------> USART2_TX
+     * PA3   ------> USART2_RX
+     */
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_2;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
+    LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
+    LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /* USART RX DMA init */
+    LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_4, LL_DMAMUX_REQ_USART2_RX);
+    LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_4, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+    LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_4, LL_DMA_PRIORITY_LOW);
+    LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_4, LL_DMA_MODE_CIRCULAR);
+    LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_4, LL_DMA_PERIPH_NOINCREMENT);
+    LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_4, LL_DMA_MEMORY_INCREMENT);
+    LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_4, LL_DMA_PDATAALIGN_BYTE);
+    LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_4, LL_DMA_MDATAALIGN_BYTE);
+    LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_4, LL_USART_DMA_GetRegAddr(USART2, LL_USART_DMA_REG_DATA_RECEIVE));
+    LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_4, (uint32_t)usart2_buff.rx_dma_buff);
+    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_4, ARRAY_LEN(usart2_buff.rx_dma_buff));
+
+    /* USART TX DMA init */
+    LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_5, LL_DMAMUX_REQ_USART2_TX);
+    LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_5, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+    LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_5, LL_DMA_PRIORITY_LOW);
+    LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_5, LL_DMA_MODE_NORMAL);
+    LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_5, LL_DMA_PERIPH_NOINCREMENT);
+    LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_5, LL_DMA_MEMORY_INCREMENT);
+    LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_5, LL_DMA_PDATAALIGN_BYTE);
+    LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_5, LL_DMA_MDATAALIGN_BYTE);
+    LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_5, LL_USART_DMA_GetRegAddr(USART2, LL_USART_DMA_REG_DATA_TRANSMIT));
+
+    /* Enable HT & TC interrupts for RX */
+    LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_4);
+    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_4);
+
+    /* Enable HT & TC interrupts for TX */
+    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_5);
+
+    /* DMA interrupt init for RX & TX */
+    NVIC_SetPriority(DMA1_Ch4_5_DMAMUX1_OVR_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
+    NVIC_EnableIRQ(DMA1_Ch4_5_DMAMUX1_OVR_IRQn);
+
+    /* Initialize USART */
+    USART_InitStruct.PrescalerValue = LL_USART_PRESCALER_DIV1;
+    USART_InitStruct.BaudRate = 115200;
+    USART_InitStruct.DataWidth = LL_USART_DATAWIDTH_8B;
+    USART_InitStruct.StopBits = LL_USART_STOPBITS_1;
+    USART_InitStruct.Parity = LL_USART_PARITY_NONE;
+    USART_InitStruct.TransferDirection = LL_USART_DIRECTION_TX_RX;
+    USART_InitStruct.HardwareFlowControl = LL_USART_HWCONTROL_NONE;
+    USART_InitStruct.OverSampling = LL_USART_OVERSAMPLING_16;
+    LL_USART_Init(USART2, &USART_InitStruct);
+    if(IS_UART_FIFO_INSTANCE(USART2)) {
+        LL_USART_SetTXFIFOThreshold(USART2, LL_USART_FIFOTHRESHOLD_1_8);
+        LL_USART_SetRXFIFOThreshold(USART2, LL_USART_FIFOTHRESHOLD_1_8);
+        LL_USART_DisableFIFO(USART2);
+    }
+    LL_USART_EnableDMAReq_RX(USART2);
+    LL_USART_EnableDMAReq_TX(USART2);
+    LL_USART_EnableIT_IDLE(USART2);
+
+    /* UDART interrupt */
+    NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
+    NVIC_EnableIRQ(USART1_IRQn);
+
+    /* Associated DMA channel struct for USART */
+    usart2_tx_dma.controller = DMA1;
+    usart2_tx_dma.channel = LL_DMA_CHANNEL_5;
+    usart2_tx_dma.clear_flag_TC = &LL_DMA_ClearFlag_TC4;
+    usart2_tx_dma.clear_flag_GI = &LL_DMA_ClearFlag_GI4;
+    usart2_tx_dma.clear_flag_HT = &LL_DMA_ClearFlag_HT4;
+    usart2_tx_dma.clear_flag_TE = &LL_DMA_ClearFlag_TE4;
+
+    /* Enable USART and RX DMA */
+    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
+    LL_USART_Enable(USART2);
+    while (!LL_USART_IsActiveFlag_TEACK(USART2) || !LL_USART_IsActiveFlag_REACK(USART2)) {
+    }
+}
+
+/* Interrupt handlers here */
+
+/**
+ * \brief           DMA1 channel2_3 interrupt handler for USART1 RX/TX
+ */
+void DMA1_Channel2_3_IRQHandler(void) {
+    /* Check RX half-transfer complete interrupt */
+    if (LL_DMA_IsEnabledIT_HT(DMA1, LL_DMA_CHANNEL_2) && LL_DMA_IsActiveFlag_HT1(DMA1)) {
+        LL_DMA_ClearFlag_HT1(DMA1);   /* Clear half-transfer complete flag */
+        uart_rx_check(&usart1_buff); /* Check data */
+    }
+
+    /* Check RX transfer-complete interrupt */
+    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_2) && LL_DMA_IsActiveFlag_TC1(DMA1)) {
+        LL_DMA_ClearFlag_TC1(DMA1);   /* Clear transfer complete flag */
+        uart_rx_check(&usart1_buff); /* Check data */
+    }
+
+    /* Check TX transfer-complete interrupt */
+    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_3) && LL_DMA_IsActiveFlag_TC2(DMA1)) {
+        LL_DMA_ClearFlag_TC2(DMA1);                                      /* Clear transfer complete flag */
+        lwrb_skip(&usart1_buff.tx_rb, usart1_buff.tx_dma_current_len); /* Skip buffer, it has been successfully sent out */
+        usart1_buff.tx_dma_current_len = 0;                             /* Reset data length */
+        uart_start_tx_dma_transfer(&usart1_buff, &usart1_tx_dma);         /* Start new transfer */
+    }
+
+    /* Implement other events when needed */
+}
+
+/**
+ * \brief           DMA1 channel4_5 interrupt handler for USART2 RX/TX
+ */
+void DMA1_Ch4_5_DMAMUX1_OVR_IRQHandler(void) {
+    /* Check RX half-transfer complete interrupt */
+    if (LL_DMA_IsEnabledIT_HT(DMA1, LL_DMA_CHANNEL_4) && LL_DMA_IsActiveFlag_HT1(DMA1)) {
+        LL_DMA_ClearFlag_HT1(DMA1);   /* Clear half-transfer complete flag */
+        uart_rx_check(&usart1_buff); /* Check data */
+    }
+
+    /* Check RX transfer-complete interrupt */
+    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_4) && LL_DMA_IsActiveFlag_TC1(DMA1)) {
+        LL_DMA_ClearFlag_TC1(DMA1);   /* Clear transfer complete flag */
+        uart_rx_check(&usart1_buff); /* Check data */
+    }
+
+    /* Check TX transfer-complete interrupt */
+    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_5) && LL_DMA_IsActiveFlag_TC2(DMA1)) {
+        LL_DMA_ClearFlag_TC2(DMA1);                                      /* Clear transfer complete flag */
+        lwrb_skip(&usart2_buff.tx_rb, usart2_buff.tx_dma_current_len); /* Skip buffer, it has been successfully sent out */
+        usart2_buff.tx_dma_current_len = 0;                             /* Reset data length */
+        uart_start_tx_dma_transfer(&usart2_buff, &usart2_tx_dma);         /* Start new transfer */
+    }
+
+    /* Implement other events when needed */
+}
+
+/**
+ * \brief           USART1 global interrupt handler
+ */
+void USART1_IRQHandler(void) {
+    /* Check for IDLE line interrupt */
+    if (LL_USART_IsEnabledIT_IDLE(USART1) && LL_USART_IsActiveFlag_IDLE(USART1)) {
+        LL_USART_ClearFlag_IDLE(USART1); /* Clear IDLE line flag */
+        uart_rx_check(&usart1_buff);     /* Check data */
+    }
+
+    /* Implement other events when needed */
+}
+
+/**
+ * \brief           USART2 global interrupt handler
+ */
+void USART2_IRQHandler(void) {
+    /* Check for IDLE line interrupt */
+    if (LL_USART_IsEnabledIT_IDLE(USART2) && LL_USART_IsActiveFlag_IDLE(USART2)) {
+        LL_USART_ClearFlag_IDLE(USART2); /* Clear IDLE line flag */
+        uart_rx_check(&usart2_buff);     /* Check data */
+    }
+
+    /* Implement other events when needed */
 }
 
 /* USER CODE END 4 */
