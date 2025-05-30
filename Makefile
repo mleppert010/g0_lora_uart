@@ -43,7 +43,9 @@ Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_ll_exti.c \
 Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_ll_pwr.c \
 Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_ll_gpio.c \
 Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_ll_rcc.c \
-Core/Src/system_stm32g0xx.c
+Core/Src/system_stm32g0xx.c \
+lwrb/Src/lwrb.c \
+Drivers/STM32G0xx_HAL_Drivers/Src/stm32g0xx_ll_usart.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -117,7 +119,8 @@ C_INCLUDES =  \
 -ICore/Inc \
 -IDrivers/STM32G0xx_HAL_Driver/Inc \
 -IDrivers/CMSIS/Device/ST/STM32G0xx/Include \
--IDrivers/CMSIS/Include
+-IDrivers/CMSIS/Include \
+-Ilwrb/Inc
 
 
 # compile gcc flags

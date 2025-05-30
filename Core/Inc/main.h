@@ -43,6 +43,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stm32g0xx_ll_usart.h"
+
 
 /* USER CODE END Includes */
 
