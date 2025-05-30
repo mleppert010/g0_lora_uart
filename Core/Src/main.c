@@ -87,7 +87,7 @@ typedef struct {
 
 uart_buff_t usart1_buff, usart2_buff;
 
-dma_tx_t usart1_dma, usart2_buff;
+dma_tx_t usart1_tx_dma, usart2_tx_dma;
 
 /**
  * \brief           Ring buffer instance for TX data
@@ -250,36 +250,40 @@ void SystemClock_Config(void) {
 
 /* USER CODE BEGIN 4 */
 
+/**
+ * \brief           USART1 Initialization Function
+ */
 void usart1_init(void) {
     LL_USART_InitTypeDef USART_InitStruct = {0};
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     /* Peripheral clock enable */
+    LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_PCLK1);
     LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
     LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
 
     /*
-     * LPUART1 GPIO Configuration
+     * USART1 GPIO Configuration
      *
-     * PA9   ------> USART1_TX
-     * PA10   ------> USART1_RX
+     * PB6   ------> USART1_TX
+     * PB7   ------> USART1_RX
      */
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_9;
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_6;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
+    LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_10;
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_7;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
+    LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* USART1 RX DMA init */
     LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_1, LL_DMAMUX_REQ_USART1_RX);
@@ -313,10 +317,10 @@ void usart1_init(void) {
     LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_2);
 
     /* DMA interrupt init for RX & TX */
-    NVIC_SetPriority(DMA1_Channel3_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
-    NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-    NVIC_SetPriority(DMA1_Channel4_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
-    NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+    NVIC_SetPriority(DMA1_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
+    NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+    NVIC_SetPriority(DMA1_Channel2_3_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
+    NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
     /* Initialize USART1 */
     USART_InitStruct.PrescalerValue = LL_USART_PRESCALER_DIV1;
@@ -340,12 +344,12 @@ void usart1_init(void) {
     NVIC_EnableIRQ(USART1_IRQn);
 
     /* Associated DMA channel struct for USART1 */
-    usart1_dma.controller = DMA1;
-    usart1_dma.channel = LL_DMA_CHANNEL_2;
-    usart1_dma.clear_flag_TC = &LL_DMA_ClearFlag_TC4;
-    usart1_dma.clear_flag_GI = &LL_DMA_ClearFlag_GI4;
-    usart1_dma.clear_flag_HT = &LL_DMA_ClearFlag_HT4;
-    usart1_dma.clear_flag_TE = &LL_DMA_ClearFlag_TE4;
+    usart1_tx_dma.controller = DMA1;
+    usart1_tx_dma.channel = LL_DMA_CHANNEL_2;
+    usart1_tx_dma.clear_flag_TC = &LL_DMA_ClearFlag_TC4;
+    usart1_tx_dma.clear_flag_GI = &LL_DMA_ClearFlag_GI4;
+    usart1_tx_dma.clear_flag_HT = &LL_DMA_ClearFlag_HT4;
+    usart1_tx_dma.clear_flag_TE = &LL_DMA_ClearFlag_TE4;
 
     /* Enable USART and DMA */
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
