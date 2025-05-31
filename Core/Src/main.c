@@ -52,12 +52,13 @@ typedef struct {
  */
 typedef struct {
     DMA_TypeDef* controller;             /**< DMA controller (DMA1/DMA2) */
-    uint32_t channel;                    /**< DMA Channel */
+    uint32_t channel_rx;                 /**< DMA RX Channel */
+    uint32_t channel_tx;                 /**< DMA TX Channel */
     void (*clear_flag_TC)(DMA_TypeDef*); /**< Channel specific function pointer to clear TC flag */
     void (*clear_flag_HT)(DMA_TypeDef*); /**< Channel specific function pointer to clear HT flag */
     void (*clear_flag_GI)(DMA_TypeDef*); /**< Channel specific function pointer to clear GI flag */
     void (*clear_flag_TE)(DMA_TypeDef*); /**< Channel specific function pointer to clear TE flag */
-} dma_tx_t;
+} uart_dma_t;
 
 /* USER CODE END PTD */
 
@@ -87,7 +88,7 @@ typedef struct {
 
 uart_buff_t usart1_buff, usart2_buff;
 
-dma_tx_t usart1_tx_dma, usart2_tx_dma;
+uart_dma_t usart1_dma, usart2_dma;
 
 /**
  * \brief           Ring buffer instance for TX data
@@ -133,15 +134,15 @@ void SystemClock_Config(void);
 
 void usart1_init(void);
 void usart2_init(void);
-void uart_rx_check(uart_buff_t* uart_buff);
+void uart_rx_check(uart_buff_t* uart_buff, uart_dma_t* uart_dma);
 void uart_process_data(uart_buff_t* uart_buff, const void* data, size_t len);
-void uart_send_string(uart_buff_t* uart_buff, dma_tx_t* dma_tx, const char* str);
-void uart_send_data(uart_buff_t* uart_buff, dma_tx_t* dma_tx, const void* data, size_t len);
-uint8_t uart_start_tx_dma_transfer(uart_buff_t* uart_buff, dma_tx_t* dma_tx);
+void uart_send_string(uart_buff_t* uart_buff, uart_dma_t* dma_tx, const char* str);
+void uart_send_data(uart_buff_t* uart_buff, uart_dma_t* dma_tx, const void* data, size_t len);
+uint8_t uart_start_tx_dma_transfer(uart_buff_t* uart_buff, uart_dma_t* dma_tx);
 uint8_t find_crlf(uart_buff_t* uart_buff, size_t peekahead, uint8_t* old_char);
 void process_char_loop(uart_buff_t* uart_buff, size_t peekahead, uint8_t* old_char);
-uint8_t rylr_send_string(uart_buff_t* uart_buff, dma_tx_t* dma_tx, uint16_t address, char* str);
-uint8_t rylr_send_data(uart_buff_t* uart_buff, dma_tx_t* dma_tx, uint16_t add, void* data, size_t len);
+uint8_t rylr_send_string(uart_buff_t* uart_buff, uart_dma_t* dma_tx, uint16_t address, char* str);
+uint8_t rylr_send_data(uart_buff_t* uart_buff, uart_dma_t* dma_tx, uint16_t add, void* data, size_t len);
 
 /* USER CODE END PFP */
 
@@ -344,12 +345,13 @@ void usart1_init(void) {
     NVIC_EnableIRQ(USART1_IRQn);
 
     /* Associated DMA channel struct for USART */
-    usart1_tx_dma.controller = DMA1;
-    usart1_tx_dma.channel = LL_DMA_CHANNEL_3;
-    usart1_tx_dma.clear_flag_TC = &LL_DMA_ClearFlag_TC4;
-    usart1_tx_dma.clear_flag_GI = &LL_DMA_ClearFlag_GI4;
-    usart1_tx_dma.clear_flag_HT = &LL_DMA_ClearFlag_HT4;
-    usart1_tx_dma.clear_flag_TE = &LL_DMA_ClearFlag_TE4;
+    usart1_dma.controller = DMA1;
+    usart1_dma.channel_rx = LL_DMA_CHANNEL_2;
+    usart1_dma.channel_tx = LL_DMA_CHANNEL_3;
+    usart1_dma.clear_flag_TC = &LL_DMA_ClearFlag_TC3;
+    usart1_dma.clear_flag_GI = &LL_DMA_ClearFlag_GI3;
+    usart1_dma.clear_flag_HT = &LL_DMA_ClearFlag_HT3;
+    usart1_dma.clear_flag_TE = &LL_DMA_ClearFlag_TE3;
 
     /* Enable USART and RX DMA */
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_2);
@@ -451,12 +453,13 @@ void usart2_init(void) {
     NVIC_EnableIRQ(USART1_IRQn);
 
     /* Associated DMA channel struct for USART */
-    usart2_tx_dma.controller = DMA1;
-    usart2_tx_dma.channel = LL_DMA_CHANNEL_5;
-    usart2_tx_dma.clear_flag_TC = &LL_DMA_ClearFlag_TC4;
-    usart2_tx_dma.clear_flag_GI = &LL_DMA_ClearFlag_GI4;
-    usart2_tx_dma.clear_flag_HT = &LL_DMA_ClearFlag_HT4;
-    usart2_tx_dma.clear_flag_TE = &LL_DMA_ClearFlag_TE4;
+    usart2_dma.controller = DMA1;
+    usart2_dma.channel_rx = LL_DMA_CHANNEL_4;
+    usart2_dma.channel_tx = LL_DMA_CHANNEL_5;
+    usart2_dma.clear_flag_TC = &LL_DMA_ClearFlag_TC5;
+    usart2_dma.clear_flag_GI = &LL_DMA_ClearFlag_GI5;
+    usart2_dma.clear_flag_HT = &LL_DMA_ClearFlag_HT5;
+    usart2_dma.clear_flag_TE = &LL_DMA_ClearFlag_TE5;
 
     /* Enable USART and RX DMA */
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
@@ -472,23 +475,23 @@ void usart2_init(void) {
  */
 void DMA1_Channel2_3_IRQHandler(void) {
     /* Check RX half-transfer complete interrupt */
-    if (LL_DMA_IsEnabledIT_HT(DMA1, LL_DMA_CHANNEL_2) && LL_DMA_IsActiveFlag_HT1(DMA1)) {
-        LL_DMA_ClearFlag_HT1(DMA1);   /* Clear half-transfer complete flag */
-        uart_rx_check(&usart1_buff); /* Check data */
+    if (LL_DMA_IsEnabledIT_HT(DMA1, LL_DMA_CHANNEL_2) && LL_DMA_IsActiveFlag_HT2(DMA1)) {
+        LL_DMA_ClearFlag_HT2(DMA1);   /* Clear half-transfer complete flag */
+        uart_rx_check(&usart1_buff, &usart1_dma); /* Check data */
     }
 
     /* Check RX transfer-complete interrupt */
-    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_2) && LL_DMA_IsActiveFlag_TC1(DMA1)) {
-        LL_DMA_ClearFlag_TC1(DMA1);   /* Clear transfer complete flag */
-        uart_rx_check(&usart1_buff); /* Check data */
+    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_2) && LL_DMA_IsActiveFlag_TC2(DMA1)) {
+        LL_DMA_ClearFlag_TC2(DMA1);   /* Clear transfer complete flag */
+        uart_rx_check(&usart1_buff, &usart1_dma); /* Check data */
     }
 
     /* Check TX transfer-complete interrupt */
-    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_3) && LL_DMA_IsActiveFlag_TC2(DMA1)) {
-        LL_DMA_ClearFlag_TC2(DMA1);                                      /* Clear transfer complete flag */
+    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_3) && LL_DMA_IsActiveFlag_TC3(DMA1)) {
+        LL_DMA_ClearFlag_TC3(DMA1);                                      /* Clear transfer complete flag */
         lwrb_skip(&usart1_buff.tx_rb, usart1_buff.tx_dma_current_len); /* Skip buffer, it has been successfully sent out */
         usart1_buff.tx_dma_current_len = 0;                             /* Reset data length */
-        uart_start_tx_dma_transfer(&usart1_buff, &usart1_tx_dma);         /* Start new transfer */
+        uart_start_tx_dma_transfer(&usart1_buff, &usart1_dma);         /* Start new transfer */
     }
 
     /* Implement other events when needed */
@@ -499,23 +502,23 @@ void DMA1_Channel2_3_IRQHandler(void) {
  */
 void DMA1_Ch4_5_DMAMUX1_OVR_IRQHandler(void) {
     /* Check RX half-transfer complete interrupt */
-    if (LL_DMA_IsEnabledIT_HT(DMA1, LL_DMA_CHANNEL_4) && LL_DMA_IsActiveFlag_HT1(DMA1)) {
-        LL_DMA_ClearFlag_HT1(DMA1);   /* Clear half-transfer complete flag */
-        uart_rx_check(&usart1_buff); /* Check data */
+    if (LL_DMA_IsEnabledIT_HT(DMA1, LL_DMA_CHANNEL_4) && LL_DMA_IsActiveFlag_HT4(DMA1)) {
+        LL_DMA_ClearFlag_HT4(DMA1);   /* Clear half-transfer complete flag */
+        uart_rx_check(&usart2_buff, &usart2_dma); /* Check data */
     }
 
     /* Check RX transfer-complete interrupt */
-    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_4) && LL_DMA_IsActiveFlag_TC1(DMA1)) {
-        LL_DMA_ClearFlag_TC1(DMA1);   /* Clear transfer complete flag */
-        uart_rx_check(&usart1_buff); /* Check data */
+    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_4) && LL_DMA_IsActiveFlag_TC4(DMA1)) {
+        LL_DMA_ClearFlag_TC4(DMA1);   /* Clear transfer complete flag */
+        uart_rx_check(&usart1_buff, &usart2_dma); /* Check data */
     }
 
     /* Check TX transfer-complete interrupt */
-    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_5) && LL_DMA_IsActiveFlag_TC2(DMA1)) {
-        LL_DMA_ClearFlag_TC2(DMA1);                                      /* Clear transfer complete flag */
+    if (LL_DMA_IsEnabledIT_TC(DMA1, LL_DMA_CHANNEL_5) && LL_DMA_IsActiveFlag_TC5(DMA1)) {
+        LL_DMA_ClearFlag_TC5(DMA1);                                      /* Clear transfer complete flag */
         lwrb_skip(&usart2_buff.tx_rb, usart2_buff.tx_dma_current_len); /* Skip buffer, it has been successfully sent out */
         usart2_buff.tx_dma_current_len = 0;                             /* Reset data length */
-        uart_start_tx_dma_transfer(&usart2_buff, &usart2_tx_dma);         /* Start new transfer */
+        uart_start_tx_dma_transfer(&usart2_buff, &usart2_dma);         /* Start new transfer */
     }
 
     /* Implement other events when needed */
@@ -528,7 +531,7 @@ void USART1_IRQHandler(void) {
     /* Check for IDLE line interrupt */
     if (LL_USART_IsEnabledIT_IDLE(USART1) && LL_USART_IsActiveFlag_IDLE(USART1)) {
         LL_USART_ClearFlag_IDLE(USART1); /* Clear IDLE line flag */
-        uart_rx_check(&usart1_buff);     /* Check data */
+        uart_rx_check(&usart1_buff, &usart1_dma);     /* Check data */
     }
 
     /* Implement other events when needed */
@@ -541,10 +544,93 @@ void USART2_IRQHandler(void) {
     /* Check for IDLE line interrupt */
     if (LL_USART_IsEnabledIT_IDLE(USART2) && LL_USART_IsActiveFlag_IDLE(USART2)) {
         LL_USART_ClearFlag_IDLE(USART2); /* Clear IDLE line flag */
-        uart_rx_check(&usart2_buff);     /* Check data */
+        uart_rx_check(&usart2_buff, &usart2_dma);     /* Check data */
     }
 
     /* Implement other events when needed */
+}
+
+/**
+ * \brief           Check for new data received with DMA
+ * \param[in]       uart_buff: UART peripheral buffers to use
+ *
+ * User must select context to call this function from:
+ * - Only interrupts (DMA HT, DMA TC, UART IDLE) with same preemption priority level
+ * - Only thread context (outside interrupts)
+ *
+ * If called from both context-es, exclusive access protection must be implemented
+ * This mode is not advised as it usually means architecture design problems
+ *
+ * When IDLE interrupt is not present, application must rely only on thread context,
+ * by manually calling function as quickly as possible, to make sure
+ * data are read from raw buffer and processed.
+ *
+ * Not doing reads fast enough may cause DMA to overflow unread received bytes,
+ * hence application will lost useful data.
+ *
+ * Solutions to this are:
+ * - Improve architecture design to achieve faster reads
+ * - Increase raw buffer size and allow DMA to write more data before this function is called
+ */
+void uart_rx_check(uart_buff_t* uart_buff, uart_dma_t* uart_dma) {
+    size_t pos;
+
+    /* Calculate current position in buffer and check for new data available */
+    pos = ARRAY_LEN(uart_buff->rx_dma_buff) - LL_DMA_GetDataLength(uart_dma->controller, uart_dma->channel_rx);
+    if (pos != uart_buff->old_pos) {                       /* Check change in received data */
+        if (pos > uart_buff->old_pos) {                    /* Current position is over previous one */
+            /*
+             * Processing is done in "linear" mode.
+             *
+             * Application processing is fast with single data block,
+             * length is simply calculated by subtracting pointers
+             *
+             * [   0   ]
+             * [   1   ] <- old_pos |------------------------------------|
+             * [   2   ]            |                                    |
+             * [   3   ]            | Single block (len = pos - old_pos) |
+             * [   4   ]            |                                    |
+             * [   5   ]            |------------------------------------|
+             * [   6   ] <- pos
+             * [   7   ]
+             * [ N - 1 ]
+             */
+            uart_process_data(uart_buff, &uart_buff->rx_dma_buff[uart_buff->old_pos], pos - uart_buff->old_pos);
+        } else {
+            /*
+             * Processing is done in "overflow" mode..
+             *
+             * Application must process data twice,
+             * since there are 2 linear memory blocks to handle
+             *
+             * [   0   ]            |---------------------------------|
+             * [   1   ]            | Second block (len = pos)        |
+             * [   2   ]            |---------------------------------|
+             * [   3   ] <- pos
+             * [   4   ] <- old_pos |---------------------------------|
+             * [   5   ]            |                                 |
+             * [   6   ]            | First block (len = N - old_pos) |
+             * [   7   ]            |                                 |
+             * [ N - 1 ]            |---------------------------------|
+             */
+            uart_process_data(uart_buff, &uart_buff->rx_dma_buff[uart_buff->old_pos], ARRAY_LEN(uart_buff->rx_dma_buff) - uart_buff->old_pos);
+            if (pos > 0) {
+                uart_process_data(uart_buff, &uart_buff->rx_dma_buff[0], pos);
+            }
+        }
+        uart_buff->old_pos = pos;                          /* Save current position as old for next transfers */
+    }
+}
+
+/**
+ * \brief           Process received data over UART
+ * \note            Either process them directly or copy to other bigger buffer
+ * \param[in]       uart_buff: UART peripheral buffers to use
+ * \param[in]       data: Data to process
+ * \param[in]       len: Length in units of bytes
+ */
+void uart_process_data(uart_buff_t* uart_buff, const void* data, size_t len) {
+    lwrb_write(&uart_buff->rx_process_rb, data, len);        /* Write data to RX processing buffer for character analysis */
 }
 
 /* USER CODE END 4 */
