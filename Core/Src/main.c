@@ -134,7 +134,7 @@ void SystemClock_Config(void);
 
 void usart1_init(void);
 void usart2_init(void);
-void uart_rx_check(uart_buff_t* uart_buff, uart_dma_t* uart_dma);
+void uart_rx_check(uart_buff_t* uart_buff, const uart_dma_t* uart_dma);
 void uart_process_data(uart_buff_t* uart_buff, const void* data, size_t len);
 void uart_send_string(uart_buff_t* uart_buff, uart_dma_t* dma_tx, const char* str);
 void uart_send_data(uart_buff_t* uart_buff, uart_dma_t* dma_tx, const void* data, size_t len);
@@ -572,7 +572,7 @@ void USART2_IRQHandler(void) {
  * - Improve architecture design to achieve faster reads
  * - Increase raw buffer size and allow DMA to write more data before this function is called
  */
-void uart_rx_check(uart_buff_t* uart_buff, uart_dma_t* uart_dma) {
+void uart_rx_check(uart_buff_t* uart_buff, const uart_dma_t* uart_dma) {
     size_t pos;
 
     /* Calculate current position in buffer and check for new data available */
