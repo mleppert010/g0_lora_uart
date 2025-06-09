@@ -90,42 +90,6 @@ uart_buff_t usart1_buff, usart2_buff;
 
 uart_dma_t usart1_dma, usart2_dma;
 
-/**
- * \brief           Ring buffer instance for TX data
- */
-// lwrb_t lpuart1_tx_rb, usart1_tx_rb;
-
-/**
- * \brief           Ring buffer data array for TX DMA
- */
-// uint8_t lpuart1_tx_rb_data[384], usart1_tx_rb_data[384];
-
-/**
- * \brief           Length of currently active TX DMA transfer
- */
-// volatile size_t lpuart1_tx_dma_current_len, usart1_tx_dma_current_len;
-
-/**
- * \brief           USART RX buffer for DMA to transfer every received byte
- * \note            Contains raw data that are about to be processed by different events
- */
-// uint8_t lpuart1_rx_dma_buff[64], usart1_rx_dma_buff[64];
-
-/**
- * \brief           DMA RX buffer previous position counter
- */
-// size_t lpuart1_old_pos, usart1_old_pos;
-
-/**
- * \brief           Ring buffer instance for processing buffer
- */
-// lwrb_t lpuart1_rx_process_rb, usart1_rx_process_rb;
-
-/**
- * \brief           Ring buffer data array for processing
- */
-// uint8_t lpuart1_rx_process_rb_data[384], usart1_rx_process_rb_data[384];
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -183,19 +147,15 @@ int main(void) {
     /* Initialize all configured peripherals */
     /* USER CODE BEGIN 2 */
 
-    /* Initialize usart1 tx ringbuff */
+
     lwrb_init(&usart1_buff.tx_rb, usart1_buff.tx_rb_data, sizeof(usart1_buff.tx_rb_data));
 
-    /* Initialize usart1 rx processing ringbuffer */
     lwrb_init(&usart1_buff.rx_process_rb, usart1_buff.rx_process_rb_data, sizeof(usart1_buff.rx_process_rb_data));
 
-    /* Initialize usart2 tx ringbuff */
     lwrb_init(&usart2_buff.tx_rb, usart2_buff.tx_rb_data, sizeof(usart2_buff.tx_rb_data));
 
-    /* Initialize usart2 rx processing ringbuffer */
     lwrb_init(&usart2_buff.rx_process_rb, usart2_buff.rx_process_rb_data, sizeof(usart2_buff.rx_process_rb_data));
 
-    /* Initialize all configured peripherals */
     usart1_init();
     usart2_init();
 
