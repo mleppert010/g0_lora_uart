@@ -41,8 +41,8 @@ typedef struct {
     lwrb_t tx_rb;                       /**< TX ring buffer for DMA to read out */
     uint8_t tx_rb_data[384];            /**< TX ring buffer data */
     volatile size_t tx_dma_current_len; /**< Current TX DMA transfer length */
-    lwrb_t rx_process_rb;               /**< RX data processing ring buffer */
-    uint8_t rx_process_rb_data[384];    /**< RX data processing ring buffer data */
+    lwrb_t rx_rb;                       /**< RX data ring buffer */
+    uint8_t rx_rb_data[384];            /**< RX data ring buffer data */
     uint8_t rx_dma_buff[64];            /**< RX circular buffer for DMA to write to */
     size_t old_pos;                     /**< Previous DMA write to index */
 } uart_buff_t;
@@ -150,11 +150,11 @@ int main(void) {
 
     lwrb_init(&usart1_buff.tx_rb, usart1_buff.tx_rb_data, sizeof(usart1_buff.tx_rb_data));
 
-    lwrb_init(&usart1_buff.rx_process_rb, usart1_buff.rx_process_rb_data, sizeof(usart1_buff.rx_process_rb_data));
+    lwrb_init(&usart1_buff.rx_rb, usart1_buff.rx_rb_data, sizeof(usart1_buff.rx_rb_data));
 
     lwrb_init(&usart2_buff.tx_rb, usart2_buff.tx_rb_data, sizeof(usart2_buff.tx_rb_data));
 
-    lwrb_init(&usart2_buff.rx_process_rb, usart2_buff.rx_process_rb_data, sizeof(usart2_buff.rx_process_rb_data));
+    lwrb_init(&usart2_buff.rx_rb, usart2_buff.rx_rb_data, sizeof(usart2_buff.rx_rb_data));
 
     usart1_init();
     usart2_init();
@@ -590,7 +590,7 @@ void uart_rx_check(uart_buff_t* uart_buff, const uart_dma_t* uart_dma) {
  * \param[in]       len: Length in units of bytes
  */
 void uart_process_data(uart_buff_t* uart_buff, const void* data, size_t len) {
-    lwrb_write(&uart_buff->rx_process_rb, data, len);        /* Write data to RX processing buffer for character analysis */
+    lwrb_write(&uart_buff->rx_rb, data, len);        /* Write data to RX processing buffer for character analysis */
 }
 
 /* USER CODE END 4 */
