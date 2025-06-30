@@ -100,13 +100,13 @@ void usart1_init(void);
 void usart2_init(void);
 void uart_rx_check(uart_buff_t* uart_buff, const uart_dma_t* uart_dma);
 void uart_process_data(uart_buff_t* uart_buff, const void* data, size_t len);
-void uart_send_string(uart_buff_t* uart_buff, uart_dma_t* dma_tx, const char* str);
-void uart_send_data(uart_buff_t* uart_buff, uart_dma_t* dma_tx, const void* data, size_t len);
-uint8_t uart_start_tx_dma_transfer(uart_buff_t* uart_buff, uart_dma_t* dma_tx);
+void uart_send_string(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, const char* str);
+void uart_send_data(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, const void* data, size_t len);
+uint8_t uart_start_tx_dma_transfer(uart_buff_t* uart_buff, const uart_dma_t* uart_dma);
 uint8_t find_crlf(uart_buff_t* uart_buff, size_t peekahead, uint8_t* old_char);
 void process_char_loop(uart_buff_t* uart_buff, size_t peekahead, uint8_t* old_char);
-uint8_t rylr_send_string(uart_buff_t* uart_buff, uart_dma_t* dma_tx, uint16_t address, char* str);
-uint8_t rylr_send_data(uart_buff_t* uart_buff, uart_dma_t* dma_tx, uint16_t add, void* data, size_t len);
+uint8_t rylr_send_string(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, uint16_t address, char* str);
+uint8_t rylr_send_data(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, uint16_t add, void* data, size_t len);
 
 /* USER CODE END PFP */
 
@@ -591,6 +591,92 @@ void uart_rx_check(uart_buff_t* uart_buff, const uart_dma_t* uart_dma) {
  */
 void uart_process_data(uart_buff_t* uart_buff, const void* data, size_t len) {
     lwrb_write(&uart_buff->rx_rb, data, len);        /* Write data to RX processing buffer for character analysis */
+}
+
+/**
+ * \brief           Send string to UART
+ * \note            Will queue to send if DMA transfer in progress
+ * \param[in]       uart_buff: UART peripheral buffers to use
+ * \param[in]       uart_dma: UART DMA type
+ * \param[in]       str: String pointer to send
+ */
+void uart_send_string(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, const char* str) {
+    lwrb_write(&uart_buff->tx_rb, str, strlen(str)); /* Write data to TX buffer */
+    uart_start_tx_dma_transfer(uart_buff, uart_dma);   /* Then try to start transfer */
+}
+
+/**
+ * \brief           Send data to UART
+ * \note            Will queue to send if DMA transfer in progress
+ * \param[in]       uart_buff: UART peripheral buffers to use
+ * \param[in]       uart_dma: UART DMA type
+ * \param[in]       data: Pointer to data array to send
+ * \param[in]       len: Length in units of bytes
+ */
+void uart_send_data(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, const void* data, size_t len) {
+    lwrb_write(&uart_buff->tx_rb, data, len);
+    uart_start_tx_dma_transfer(uart_buff, uart_dma);
+}
+
+/**
+ * \brief           Check if DMA is active and if not try to send data
+ * \return          `1` if transfer just started, `0` if on-going or no data to transmit
+ * \param[in]       uart_buff: UART peripheral buffers to use
+ * \param[in]       dma_tx: DMA controller, channel, and interrupt flag clearing functions
+ */
+uint8_t uart_start_tx_dma_transfer(uart_buff_t* uart_buff, const uart_dma_t* uart_dma) {
+    uint32_t primask;
+    uint8_t started = 0;
+
+    /*
+     * First check if transfer is currently in-active,
+     * by examining the value of tx_dma_current_len variable.
+     *
+     * This variable is set before DMA transfer is started and cleared in DMA TX complete interrupt.
+     *
+     * It is not necessary to disable the interrupts before checking the variable:
+     *
+     * When tx_dma_current_len == 0
+     *    - This function is called by either application or TX DMA interrupt
+     *    - When called from interrupt, it was just reset before the call,
+     *         indicating transfer just completed and ready for more
+     *    - When called from an application, transfer was previously already in-active
+     *         and immediate call from interrupt cannot happen at this moment
+     *
+     * When tx_dma_current_len != 0
+     *    - This function is called only by an application.
+     *    - It will never be called from interrupt with tx_dma_current_len != 0 condition
+     *
+     * Disabling interrupts before checking for next transfer is advised
+     * only if multiple operating system threads can access to this function w/o
+     * exclusive access protection (mutex) configured,
+     * or if application calls this function from multiple interrupts.
+     *
+     * This example assumes worst use case scenario,
+     * hence interrupts are disabled prior every check
+     */
+    primask = __get_PRIMASK();
+    __disable_irq();
+    if (uart_buff->tx_dma_current_len == 0 && (uart_buff->tx_dma_current_len = lwrb_get_linear_block_read_length(&uart_buff->tx_rb)) > 0) {
+        /* Disable channel if enabled */
+        LL_DMA_DisableChannel(uart_dma->controller, uart_dma->channel_tx);
+
+        /* Clear all flags */
+        uart_dma->clear_flag_TC(uart_dma->controller);
+        uart_dma->clear_flag_HT(uart_dma->controller);
+        uart_dma->clear_flag_GI(uart_dma->controller);
+        uart_dma->clear_flag_TE(uart_dma->controller);
+
+        /* Prepare DMA data and length */
+        LL_DMA_SetDataLength(uart_dma->controller, uart_dma->channel_tx, uart_buff->tx_dma_current_len);
+        LL_DMA_SetMemoryAddress(uart_dma->controller, uart_dma->channel_tx, (uint32_t)lwrb_get_linear_block_read_address(&uart_buff->tx_rb));
+
+        /* Start transfer */
+        LL_DMA_EnableChannel(uart_dma->controller, uart_dma->channel_tx);
+        started = 1;
+    }
+    __set_PRIMASK(primask);
+    return started;
 }
 
 /* USER CODE END 4 */
