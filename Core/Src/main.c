@@ -68,7 +68,12 @@ typedef struct {
 /**
  * \brief           Should tx be looped back
  */
-#define LOOPBACK 1
+#define LOOPBACK 0
+
+/**
+ * \brief           Should tx be looped back
+ */
+#define EOF_LOOKBACK 1
 
 /**
  * \brief           Calculate length of statically allocated array
@@ -492,6 +497,7 @@ void USART1_IRQHandler(void) {
     if (LL_USART_IsEnabledIT_IDLE(USART1) && LL_USART_IsActiveFlag_IDLE(USART1)) {
         LL_USART_ClearFlag_IDLE(USART1); /* Clear IDLE line flag */
         uart_rx_check(&usart1_buff, &usart1_dma);     /* Check data */
+        uart_rx_find_eof(&usart1_buff);
     }
 
     /* Implement other events when needed */
