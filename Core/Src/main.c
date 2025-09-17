@@ -45,6 +45,7 @@ typedef struct {
     uint8_t rx_rb_data[384];            /**< RX data ring buffer data */
     uint8_t rx_dma_buff[64];            /**< RX circular buffer for DMA to write to */
     size_t old_pos;                     /**< Previous DMA write to index */
+    size_t rx_peek;                        /**< Previous software peekahead */
 } uart_buff_t;
 
 /**
@@ -71,9 +72,10 @@ typedef struct {
 #define LOOPBACK 0
 
 /**
- * \brief           Should tx be looped back
+ * \brief           End of frame identifier
  */
-#define EOF_LOOKBACK 1
+#define EOF_TERM {'\r','\n'}
+
 
 /**
  * \brief           Calculate length of statically allocated array
@@ -108,6 +110,7 @@ void uart_process_data(uart_buff_t* uart_buff, const void* data, size_t len);
 void uart_send_string(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, const char* str);
 void uart_send_data(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, const void* data, size_t len);
 uint8_t uart_start_tx_dma_transfer(uart_buff_t* uart_buff, const uart_dma_t* uart_dma);
+size_t uart_rx_find_eof(uart_buff_t* uart_buff, uint8_t* eof_term, size_t eof_term_len);
 uint8_t find_crlf(uart_buff_t* uart_buff, size_t peekahead, uint8_t* old_char);
 void process_char_loop(uart_buff_t* uart_buff, size_t peekahead, uint8_t* old_char);
 uint8_t rylr_send_string(uart_buff_t* uart_buff, const uart_dma_t* uart_dma, uint16_t address, char* str);
@@ -170,7 +173,12 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         /* USER CODE END WHILE */
+        if (lwrb_get_full(&usart1_buff.rx_rb) > usart1_buff.rx_peek) {
+            usart1_buff.rx_peek++;
+            if(find_eof(&usart1_buff)){
 
+            }
+        }
         /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */
@@ -493,11 +501,13 @@ void DMA1_Ch4_5_DMAMUX1_OVR_IRQHandler(void) {
  * \brief           USART1 global interrupt handler
  */
 void USART1_IRQHandler(void) {
+
+    const uint8_t eof_term[] = EOF_TERM;
+
     /* Check for IDLE line interrupt */
     if (LL_USART_IsEnabledIT_IDLE(USART1) && LL_USART_IsActiveFlag_IDLE(USART1)) {
         LL_USART_ClearFlag_IDLE(USART1); /* Clear IDLE line flag */
         uart_rx_check(&usart1_buff, &usart1_dma);     /* Check data */
-        uart_rx_find_eof(&usart1_buff);
     }
 
     /* Implement other events when needed */
